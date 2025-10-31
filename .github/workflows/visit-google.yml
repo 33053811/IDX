@@ -2,7 +2,7 @@ name: Visit Google IDX
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 每 3 小时执行一次
+    - cron: '0 * * * *'  # 每 1 小时执行一次
   workflow_dispatch:
 
 jobs:
