@@ -1,0 +1,28 @@
+name: Visit Google IDX
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # 每 3 小时执行一次
+  workflow_dispatch:
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Random delay (0-30min)
+        run: |
+          RAND=$((RANDOM % 1801))
+          echo "Sleeping for $RAND seconds (~$((RAND/60)) min)"
+          sleep $RAND
+
+      - name: Visit Google IDX app
+        env:
+          COOKIE: ${{ secrets.GOOGLE_COOKIE }}
+        run: |
+          URL="https://idx.google.com/us222-59187885"
+          echo "Visiting $URL"
+          # 模拟浏览器 UA
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36"
+          # 使用 Cookie 发请求
+          curl -I -L -sS -A "$UA" -H "Cookie: $COOKIE" "$URL" -o headers.txt
+          head -n 20 headers.txt
