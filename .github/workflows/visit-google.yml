@@ -1,30 +1,46 @@
-name: Visit Google IDX (loop)
+export default {
+  async fetch(request, env, ctx) {
+    // 目标访问地址
+    const URL = "https://idx.google.com/us222-59187885";
 
-on:
-  workflow_dispatch:
+    // 模拟 Chrome 浏览器 UA
+    const UA =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36";
 
-jobs:
-  visit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 360  # 最长运行 6 小时，可按需调整
-    steps:
-      - name: Loop Visit Google IDX
-        env:
-          COOKIE: ${{ secrets.GOOGLE_COOKIE }}
-        run: |
-          URL="https://idx.google.com/us222-59187885"
-          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36"
+    // 从环境变量读取 Cookie
+    const COOKIE = env.GOOGLE_COOKIE || "";
 
-          while true; do
-            RAND=$((RANDOM % 600 + 60))  # 60~660 秒 = 1~11 分钟
-            echo "Sleeping for $RAND seconds (~$((RAND/60)) min)"
-            sleep $RAND
+    // 定义一个异步循环访问函数
+    async function loopVisit() {
+      while (true) {
+        // 随机等待 1~10 分钟（60~600 秒）
+        const delay = Math.floor(Math.random() * 600 + 60);
+        console.log(`⏳ 等待 ${delay} 秒后访问 (${(delay / 60).toFixed(1)} 分钟)...`);
+        await new Promise((r) => setTimeout(r, delay * 1000));
 
-            echo "Visiting $URL"
-            curl -I -L -sS -A "$UA" -H "Cookie: $COOKIE" "$URL" -o headers.txt
-            echo "------ Response Headers ------"
-            head -n 20 headers.txt
+        try {
+          const res = await fetch(URL, {
+            method: "GET",
+            headers: {
+              "User-Agent": UA,
+              Cookie: COOKIE,
+            },
+          });
+          const status = res.status;
+          const date = new Date().toISOString();
+          console.log(`✅ [${date}] 访问成功 - 状态码 ${status}`);
+        } catch (e) {
+          console.log("❌ 请求失败：", e.message);
+        }
+      }
+    }
 
-            echo "Cycle complete at $(date)"
-            echo "-----------------------------"
-          done
+    // 启动异步循环
+    ctx.waitUntil(loopVisit());
+
+    return new Response(
+      "🌐 Cloudflare Worker 已启动随机访问任务（1~10分钟间隔循环）",
+      { headers: { "content-type": "text/plain;charset=UTF-8" } }
+    );
+  },
+};
