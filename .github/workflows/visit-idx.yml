@@ -1,0 +1,23 @@
+name: Visit IDX Worker
+
+# 手动触发 + 定时触发
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/1 * * * *'  # 每 1 分钟触发一次
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Random wait 1~10 min
+        run: |
+          RAND=$((RANDOM % 600 + 60))  # 60~660 秒
+          echo "⏳ 等待 $RAND 秒 (~$((RAND/60)) 分钟) 后访问"
+          sleep $RAND
+
+      - name: Visit IDX Worker
+        run: |
+          URL="https://idx-alive.wuyuping7262.workers.dev/run"
+          echo "访问 $URL"
+          curl -sS "$URL" -o /dev/null
