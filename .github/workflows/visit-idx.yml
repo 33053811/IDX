@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Random wait 1~10 min
         run: |
-          RAND=$((RANDOM % 600 + 60))  # 60~660 秒
+          RAND=$((RANDOM % 300 + 60))  # 60~360 秒
           echo "⏳ 等待 $RAND 秒 (~$((RAND/60)) 分钟) 后访问"
           sleep $RAND
 
