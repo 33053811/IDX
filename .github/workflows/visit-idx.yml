@@ -1,23 +1,32 @@
-name: Visit IDX Worker
+name: Google IDX Keepalive
 
-# 手动触发 + 定时触发
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/1 * * * *'  # 每 1 分钟触发一次
+    - cron: '0 * * * *'  # 每小时启动一次循环
 
 jobs:
-  visit:
+  keepalive:
     runs-on: ubuntu-latest
     steps:
-      - name: Random wait 1~10 min
+      - name: Start infinite loop
+        env:
+          COOKIE: ${{ secrets.GOOGLE_COOKIE }}
         run: |
-          RAND=$((RANDOM % 300 + 60))  # 60~360 秒
-          echo "⏳ 等待 $RAND 秒 (~$((RAND/60)) 分钟) 后访问"
-          sleep $RAND
+          echo "🚀 启动 Google IDX 自动访问任务"
+          while true; do
+            # 随机延迟 1～10 分钟
+            DELAY=$((RANDOM % 600 + 60))
+            echo "⏳ 等待 $DELAY 秒后访问..."
+            sleep $DELAY
 
-      - name: Visit IDX Worker
-        run: |
-          URL="https://idx-alive.wuyuping7262.workers.dev/run"
-          echo "访问 $URL"
-          curl -sS "$URL" -o /dev/null
+            # 发起请求并保持 30 秒连接
+            echo "🌐 正在访问 https://idx.google.com/us222-59187885 ..."
+            curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120 Safari/537.36" \
+                 -H "Cookie: $COOKIE" \
+                 --max-time 30 \
+                 -I -s -w "\n状态码：%{http_code}\n完成时间：%{time_total}s\n" \
+                 https://idx.google.com/us222-59187885
+
+            echo "✅ 访问完成，继续下一次循环..."
+          done
