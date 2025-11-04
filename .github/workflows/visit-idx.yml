@@ -2,7 +2,7 @@ name: Google IDX Auto Visit
 
 on:
   schedule:
-    - cron: "*/15 * * * *" # 每15分钟检查一次（确保保活）
+    - cron: "*/60 * * * *" # 每60分钟检查一次（确保保活）
   workflow_dispatch:
 
 jobs:
