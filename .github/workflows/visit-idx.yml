@@ -1,42 +1,24 @@
-name: 🌐 Google IDX Auto Visit + Status Page (24H Auto)
+name: Auto Visit Loop
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"  # 每 10 分钟自动启动一次任务
   workflow_dispatch:
-
-permissions:
-  contents: write
+  schedule:
+    - cron: "*/10 * * * *"  # 每10分钟触发一次
 
 jobs:
-  keepalive:
+  keep-alive:
     runs-on: ubuntu-latest
-    timeout-minutes: 350  # 每次运行最长约 6 小时
+    timeout-minutes: 3600  # 单次运行最长1小时
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
 
-      - run: npm install
-
-      - name: Run continuous visit (1~10 min interval, hold 1min)
+      - name: Run auto visitor
         run: |
-          echo "🚀 启动 Google IDX 连续访问脚本"
-          for i in {1..1000}; do
-            echo "第 $i 次访问开始..."
-            node auto_visit.js
-            echo "等待下一次访问..."
-            sleep 10  # 每轮间隔 10 秒，auto_visit.js 内部自己再随机等待 1~10 分钟
-          done
-
-      - name: Commit & Push Status
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.email "github-actions@users.noreply.github.com"
-          git config --global user.name "github-actions"
-          git add status.json
-          git commit -m "update status $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
-          git push
+          npm install axios express
+          node auto_visit.js
