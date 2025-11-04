@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 
 // 配置
 const TARGET_URL = "https://idx.google.com/"; // 目标主页（如需精确到 workspace，可在脚本内点击）
-const WORKER_URL = "https://your-worker-id.cloudflareworkers.net/keepalive"; // 可选：Cloudflare Worker 保活地址（不需要可置空）
+const WORKER_URL = "https://idx-alive.wuyuping7262.workers.dev/"; // 可选：Cloudflare Worker 保活地址（不需要可置空）
 const RUN_KEEP_MS = 60 * 1000; // 每次停留总时长：60秒
 const MIN_DELAY_MIN = 1; // 随机等待最小分钟
 const MAX_DELAY_MIN = 10; // 随机等待最大分钟
