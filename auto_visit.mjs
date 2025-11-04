@@ -1,21 +1,24 @@
 import puppeteer from "puppeteer";
-import fetch from "node-fetch";
 
-// === 配置部分 ===
-const TARGET_URL = "https://idx.google.com/"; // 要访问的网页
-const WORKSPACE_NAME = "us222"; // 登录后自动打开的 workspace 名称
-const WORKER_URL = "https://idx-alive.wuyuping7262.workers.dev/"; // Cloudflare Worker 地址
+// 配置
+const TARGET_URL = "https://idx.google.com/"; // 目标主页（如需精确到 workspace，可在脚本内点击）
+const WORKER_URL = "https://your-worker-id.cloudflareworkers.net/keepalive"; // 可选：Cloudflare Worker 保活地址（不需要可置空）
+const RUN_KEEP_MS = 60 * 1000; // 每次停留总时长：60秒
+const MIN_DELAY_MIN = 1; // 随机等待最小分钟
+const MAX_DELAY_MIN = 10; // 随机等待最大分钟
 
-// 随机延迟函数
-function randomDelay(min, max) {
-  const ms = Math.floor(Math.random() * (max - min + 1) + min) * 60 * 1000;
-  console.log(`🕒 等待 ${ms / 60000} 分钟后再次执行...`);
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// 工具：随机整数（含端点）
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// 主函数
+// 工具：sleep
+function sleep(ms) {
+  return new Promise((res) => setTimeout(res, ms));
+}
+
 async function visitOnce() {
-  console.log(`🚀 开始访问 ${TARGET_URL} ...`);
+  console.log(`\n🚀 [${new Date().toLocaleString()}] 开始访问：${TARGET_URL}`);
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -23,42 +26,60 @@ async function visitOnce() {
 
   try {
     const page = await browser.newPage();
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+    );
+
+    // 打开页面（等待网络空闲）
     await page.goto(TARGET_URL, { waitUntil: "networkidle2", timeout: 60000 });
     console.log("✅ 页面加载完成");
 
-    // 自动进入目标 workspace（如果存在）
-    if (WORKSPACE_NAME) {
-      await page.waitForTimeout(3000);
-      const link = await page.$x(`//span[contains(text(), '${WORKSPACE_NAME}')]`);
-      if (link.length > 0) {
-        await link[0].click();
-        console.log(`✅ 已点击 workspace: ${WORKSPACE_NAME}`);
-      } else {
-        console.log(`⚠️ 未找到 workspace: ${WORKSPACE_NAME}`);
+    // 在 60 秒内刷新 2~3 次（均匀分布）
+    const refreshCount = randInt(2, 3);
+    const interval = Math.floor(RUN_KEEP_MS / (refreshCount + 1)); // 每次间隔：均分
+    for (let i = 0; i < refreshCount; i++) {
+      console.log(`⏱ 等待 ${interval / 1000}s 后刷新（第 ${i + 1}/${refreshCount} 次）`);
+      await sleep(interval);
+      try {
+        await page.reload({ waitUntil: "networkidle2", timeout: 60000 });
+        console.log(`🔁 刷新 ${i + 1} 成功`);
+      } catch (err) {
+        console.warn(`⚠️ 刷新 ${i + 1} 出错：`, err.message);
       }
     }
+    // 停留剩余时间
+    const remaining = RUN_KEEP_MS - interval * refreshCount;
+    if (remaining > 0) {
+      console.log(`⏱ 停留剩余 ${Math.round(remaining / 1000)} 秒`);
+      await sleep(remaining);
+    }
 
-    await page.waitForTimeout(10000);
-    console.log("🌐 模拟停留 10 秒后关闭浏览器");
+    console.log("✅ 本次保持/刷新完成，准备关闭浏览器");
   } catch (err) {
-    console.error("❌ 访问出错：", err);
+    console.error("❌ 访问出错：", err && err.message ? err.message : err);
   } finally {
     await browser.close();
   }
 
-  // 调用 Worker 触发保活
-  try {
-    console.log("🔄 调用 Cloudflare Worker 保活...");
-    const res = await fetch(WORKER_URL);
-    console.log("📨 Worker 返回状态：", res.status);
-  } catch (e) {
-    console.log("⚠️ Worker 保活失败：", e.message);
+  // 可选：调用 Cloudflare Worker 以便唤醒/保活（如果你配置了）
+  if (WORKER_URL) {
+    try {
+      const res = await fetch(WORKER_URL);
+      console.log("🔄 调用 Worker 保活，返回状态：", res.status);
+    } catch (e) {
+      console.warn("⚠️ 调用 Worker 失败：", e.message);
+    }
   }
 
-  // 随机等待后重新运行
-  await randomDelay(1, 30);
-  await visitOnce();
+  // 随机等待 1～10 分钟后再次执行
+  const waitMin = randInt(MIN_DELAY_MIN, MAX_DELAY_MIN);
+  console.log(`⏳ 随机等待 ${waitMin} 分钟后再次执行 (${new Date(Date.now() + waitMin * 60000).toLocaleTimeString()})`);
+  await sleep(waitMin * 60 * 1000);
 }
 
-// 启动
-visitOnce();
+(async () => {
+  // 持续循环（注意：在 GitHub Actions 中单次 job 有超时限制；通常把 workflow 定时触发与脚本内部循环结合使用）
+  while (true) {
+    await visitOnce();
+  }
+})();
