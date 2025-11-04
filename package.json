@@ -6,7 +6,6 @@
     "start": "node auto_visit.mjs"
   },
   "dependencies": {
-    "puppeteer": "^23.4.1",
-    "node-fetch": "^3.3.2"
+    "puppeteer": "^23.4.1"
   }
 }
