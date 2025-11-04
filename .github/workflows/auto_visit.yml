@@ -1,0 +1,26 @@
+name: Google IDX Auto Visit (24h保活)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # 仍然保留形式，但会在脚本内打乱执行间隔
+  workflow_dispatch:
+
+jobs:
+  auto-visit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          npm install puppeteer axios
+
+      - name: Run auto visit
+        run: |
+          node auto_visit.cjs
