@@ -1,31 +1,39 @@
-name: 🌐 Google IDX Auto Visit + Status Page
+name: 🌐 Google IDX Auto Visit + Status Page (24H Auto)
 
 on:
   schedule:
-    - cron: "*/15 * * * *" # 每 15 分钟启动一次防止断档
+    - cron: "*/10 * * * *"  # 每 10 分钟自动启动一次任务
   workflow_dispatch:
-  repository_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   keepalive:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 350  # 每次运行最长约 6 小时
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Dependencies
-        run: npm install
+      - run: npm install
 
-      - name: Run Auto Visit
-        run: node auto_visit.js
+      - name: Run continuous visit (1~10 min interval, hold 1min)
+        run: |
+          echo "🚀 启动 Google IDX 连续访问脚本"
+          for i in {1..1000}; do
+            echo "第 $i 次访问开始..."
+            node auto_visit.js
+            echo "等待下一次访问..."
+            sleep 10  # 每轮间隔 10 秒，auto_visit.js 内部自己再随机等待 1~10 分钟
+          done
 
       - name: Commit & Push Status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.email "github-actions@users.noreply.github.com"
           git config --global user.name "github-actions"
