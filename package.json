@@ -1,12 +1,12 @@
 {
   "name": "idx-auto-visit",
   "version": "1.0.0",
-  "description": "Auto visit Google IDX workspace for keep-alive",
-  "main": "auto_visit.cjs",
+  "type": "module",
   "scripts": {
-    "start": "node auto_visit.cjs"
+    "start": "node auto_visit.mjs"
   },
   "dependencies": {
-    "puppeteer": "^23.3.0"
+    "puppeteer": "^23.4.1",
+    "node-fetch": "^3.3.2"
   }
 }
