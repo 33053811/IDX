@@ -7,7 +7,6 @@
     "start": "node auto_visit.cjs"
   },
   "dependencies": {
-    "puppeteer": "^23.3.0",
-    "axios": "^1.7.4"
+    "puppeteer": "^23.3.0"
   }
 }
