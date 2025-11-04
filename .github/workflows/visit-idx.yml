@@ -21,4 +21,4 @@ jobs:
       - name: Run auto visitor
         run: |
           npm install axios express
-          node auto_visit.js
+          node auto_visit.cjs
