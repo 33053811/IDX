@@ -1,0 +1,9 @@
+{
+  "name": "auto-visit",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "fs-extra": "^11.2.0"
+  }
+}
