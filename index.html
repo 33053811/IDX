@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>🌐 Google IDX 自动访问状态</title>
+  <meta http-equiv="refresh" content="60">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background:#111; color:#eee; text-align:center; padding-top:100px; }
+    h1 { font-size: 1.6em; }
+    .card { background:#222; display:inline-block; padding:30px 50px; border-radius:20px; box-shadow:0 0 20px rgba(0,0,0,0.4); }
+    .data { margin-top:10px; line-height:1.8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌐 Google IDX 自动访问状态</h1>
+    <div id="status" class="data">加载中...</div>
+  </div>
+
+  <script>
+    async function load() {
+      try {
+        const res = await fetch("status.json?_=" + Date.now());
+        const d = await res.json();
+        document.getElementById("status").innerHTML = `
+          上次访问时间：${d.lastVisit || '尚未执行'}<br>
+          上次返回状态：${d.lastStatus || 'N/A'}<br>
+          下次访问倒计时：${d.nextWait} 分钟<br>
+          累计访问次数：${d.total || 0}<br>
+          Worker 持续运行中，每次访问后随机等待 1～10 分钟自动重试。
+        `;
+      } catch (e) {
+        document.getElementById("status").innerHTML = "❌ 状态文件加载失败。";
+      }
+    }
+    load();
+  </script>
+</body>
+</html>
