@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 // === 配置部分 ===
 const TARGET_URL = "https://idx.google.com/"; // 要访问的网页
 const WORKSPACE_NAME = "us222"; // 登录后自动打开的 workspace 名称
-const WORKER_URL = "https://your-worker-id.cloudflareworkers.net/keepalive"; // Cloudflare Worker 地址
+const WORKER_URL = "https://idx-alive.wuyuping7262.workers.dev/"; // Cloudflare Worker 地址
 
 // 随机延迟函数
 function randomDelay(min, max) {
