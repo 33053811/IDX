@@ -1,24 +1,36 @@
-name: Auto Visit Loop
+name: Google IDX Auto Visit
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"  # 每10分钟触发一次
+    - cron: "*/15 * * * *" # 每15分钟检查一次（确保保活）
+  workflow_dispatch:
 
 jobs:
-  keep-alive:
+  run:
     runs-on: ubuntu-latest
-    timeout-minutes: 3600  # 单次运行最长1小时
+    permissions:
+      contents: write
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
-      - name: Run auto visitor
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run auto visit
+        run: node auto_visit.cjs
+
+      - name: Commit status
+        if: always()
         run: |
-          npm install axios express
-          node auto_visit.cjs
+          git config --global user.email "github-actions@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add status.json
+          git commit -m "update status $(date '+%Y-%m-%d %H:%M:%S')" || echo "no changes"
+          git push
