@@ -1,18 +1,18 @@
-name: Google IDX Auto Visit
+name: Google IDX Auto Visit (24h保活)
 
 on:
   schedule:
-    - cron: "*/60 * * * *" # 每60分钟检查一次（确保保活）
+    - cron: "*/15 * * * *"  # 每15分钟执行一次
   workflow_dispatch:
 
 jobs:
-  run:
+  keepalive:
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -23,14 +23,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run auto visit
-        run: node auto_visit.cjs
+      - name: Run Visit Task Checker
+        run: |
+          echo "🔍 检查访问任务状态..."
+          node auto_visit.cjs & sleep 10
+          ps aux | grep auto_visit.cjs
 
-      - name: Commit status
+      - name: Commit Latest Status
         if: always()
         run: |
           git config --global user.email "github-actions@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git add status.json
+          git add status.json || true
           git commit -m "update status $(date '+%Y-%m-%d %H:%M:%S')" || echo "no changes"
           git push
