@@ -1,5 +1,5 @@
 {
-  "name": "auto-visit",
+  "name": "idx-auto-visit",
   "version": "1.0.0",
   "main": "auto_visit.cjs",
   "type": "commonjs",
