@@ -2,7 +2,7 @@ name: Google IDX Auto Visit (24h保活)
 
 on:
   schedule:
-    - cron: "*/10 * * * *" # 初始为固定10分钟
+    - cron: "*/5 * * * *" # 初始为固定5分钟
   workflow_dispatch:
 
 jobs:
